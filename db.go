@@ -1,10 +1,13 @@
 package ldb
 
 // @author  Mikhail Kirillov <mikkirillov@yandex.ru>
-// @version 1.000
-// @date    2018-06-28
+// @version 1.001
+// @date    2019-11-11
 
 import (
+	"errors"
+
+	"github.com/belfinor/kvstring"
 	"github.com/belfinor/log"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
@@ -13,6 +16,36 @@ import (
 
 type DB struct {
 	ldb *leveldb.DB
+}
+
+func Open(dsn string) (Storage, error) {
+
+	kv, err := kvstring.New(dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	if kv.GetBool("test", false) {
+		if store != nil {
+			store.Close()
+		}
+		store = NewFakeDB()
+		return store, nil
+	}
+
+	path := kv.GetString("path", "")
+	if path == "" {
+		return nil, errors.New("path not entered")
+	}
+
+	cfg := &Config{
+		Path:        kv.GetString("path", ""),
+		Compression: kv.GetBool("compression", true),
+		FileSize:    kv.GetInt("filesize", 16),
+		ReadOnly:    kv.GetBool("readonly", false),
+	}
+
+	return New(cfg, kv.GetBool("default", false))
 }
 
 func New(cfg *Config, def bool) (*DB, error) {

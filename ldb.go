@@ -1,8 +1,8 @@
 package ldb
 
 // @author  Mikhail Kirillov <mikkirillov@yandex.ru>
-// @version 1.010
-// @date    2018-07-04
+// @version 1.011
+// @date    2019-11-11
 
 var store Storage = nil
 var proxyConfig *Config
@@ -14,10 +14,7 @@ func Init(cfg *Config) {
 }
 
 func TestInit() {
-	if store != nil {
-		store.Close()
-	}
-	store = NewFakeDB()
+	Open("test=true")
 }
 
 func Close() {
